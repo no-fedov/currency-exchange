@@ -36,7 +36,6 @@ public class ErrorHandlerFilter extends HttpFilter {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             writeJsonToResponse(res, new ErrorResponse(e.getMessage()));
         }
-        res.setContentType("application/json; charset=UTF-8");
     }
 }
 // поиск валюты

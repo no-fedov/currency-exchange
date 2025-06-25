@@ -1,9 +1,9 @@
 package com.nefedov.currency_exchange.domain.dao;
 
 import com.nefedov.currency_exchange.connection.ConnectionPool;
+import com.nefedov.currency_exchange.domain.dao.exception.EntityNotFoundException;
 import com.nefedov.currency_exchange.domain.dao.mapper.ExchangeRateRowMapper;
 import com.nefedov.currency_exchange.domain.entity.ExchangeRate;
-import com.nefedov.currency_exchange.domain.dao.exception.EntityNotFoundException;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class ExchangeRateDao {
 
@@ -72,8 +73,6 @@ public class ExchangeRateDao {
                 exchangeRateId = generatedKeys.getInt(1);
             } else {
                 connection.rollback();
-                //TODO:
-                // 1) code1 = code2 -> ошибка (унести проверку в фильтры)
                 throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
                         .formatted(baseCurrencyCode, targetCurrencyCode));
             }
@@ -110,13 +109,13 @@ public class ExchangeRateDao {
             }
             ExchangeRate exchangeRateByCurrencies = getExchangeRateByCurrencies(baseCurrencyCode,
                     targetCurrencyCode,
-                    connection);
+                    connection).orElseThrow();
             connection.commit();
             return exchangeRateByCurrencies;
         });
     }
 
-    public ExchangeRate findByCurrenciesCode(String baseCurrencyCode, String targetCurrencyCode) {
+    public Optional<ExchangeRate> findByCurrenciesCode(String baseCurrencyCode, String targetCurrencyCode) {
         try (Connection connection = ConnectionPool.open()) {
             return getExchangeRateByCurrencies(baseCurrencyCode, targetCurrencyCode, connection);
         } catch (SQLException e) {
@@ -124,7 +123,7 @@ public class ExchangeRateDao {
         }
     }
 
-    private ExchangeRate getExchangeRateByCurrencies(String baseCurrencyCode,
+    private Optional<ExchangeRate> getExchangeRateByCurrencies(String baseCurrencyCode,
                                                      String targetCurrencyCode,
                                                      Connection connection) throws SQLException {
         try (PreparedStatement findStatement = connection.prepareStatement(FIND_BY_CURRENCIES_CODE_QUERY_TEMPLATE)) {
@@ -132,10 +131,9 @@ public class ExchangeRateDao {
             findStatement.setString(2, targetCurrencyCode);
             ResultSet resultSet = findStatement.executeQuery();
             if (resultSet.next()) {
-                return ExchangeRateRowMapper.toEntity(resultSet);
+                return Optional.of(ExchangeRateRowMapper.toEntity(resultSet));
             } else {
-                throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
-                        .formatted(baseCurrencyCode, targetCurrencyCode));
+                return Optional.empty();
             }
         }
     }

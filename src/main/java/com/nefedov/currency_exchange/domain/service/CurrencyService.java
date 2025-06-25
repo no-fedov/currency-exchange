@@ -1,6 +1,7 @@
 package com.nefedov.currency_exchange.domain.service;
 
 import com.nefedov.currency_exchange.domain.dao.CurrencyDao;
+import com.nefedov.currency_exchange.domain.dao.exception.EntityNotFoundException;
 import com.nefedov.currency_exchange.domain.dto.CurrencyDto;
 import com.nefedov.currency_exchange.domain.entity.Currency;
 import com.nefedov.currency_exchange.domain.mapper.CurrencyMapper;
@@ -24,7 +25,9 @@ public class CurrencyService {
         return CurrencyMapper.toDtos(currencies);
     }
 
-    public CurrencyDto getByName(String name) {
-        return CurrencyMapper.toDto(currencyDao.findByCode(name));
+    public CurrencyDto getByCode(String code) {
+        Currency currency = currencyDao.findByCode(code)
+                .orElseThrow(() -> new EntityNotFoundException("Валюта с именем '%s' не найдена".formatted(code)));
+        return CurrencyMapper.toDto(currency);
     }
 }

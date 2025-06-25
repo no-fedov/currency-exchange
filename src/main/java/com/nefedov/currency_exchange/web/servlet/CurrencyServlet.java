@@ -44,7 +44,7 @@ public class CurrencyServlet extends HttpServlet {
             writeJsonToResponse(resp, currencyService.getAll());
         } else {
             String currencyName = pathInfo.substring(1);
-            writeJsonToResponse(resp, currencyService.getByName(currencyName));
+            writeJsonToResponse(resp, currencyService.getByCode(currencyName));
         }
     }
 

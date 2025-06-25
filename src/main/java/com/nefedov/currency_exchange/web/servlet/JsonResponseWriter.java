@@ -14,6 +14,7 @@ public class JsonResponseWriter {
     }
 
     public static void writeJsonToResponse(HttpServletResponse resp, Object object) throws IOException {
+        resp.setContentType("application/json");
         try (PrintWriter writer = resp.getWriter()) {
             objectMapper.writeValue(writer, object);
         }

@@ -34,6 +34,16 @@
         <servlet-name>exchangeRates</servlet-name>
         <url-pattern>/exchangeRates</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>exchange</servlet-name>
+        <servlet-class>com.nefedov.currency_exchange.web.servlet.ExchangeServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>exchange</servlet-name>
+        <url-pattern>/exchange</url-pattern>
+    </servlet-mapping>
 
     <listener>
         <listener-class>com.nefedov.currency_exchange.web.listener.AppContextListener</listener-class>
@@ -49,6 +59,7 @@
         <servlet-name>currencies</servlet-name>
         <servlet-name>exchangeRates</servlet-name>
         <servlet-name>exchangeRates</servlet-name>
+        <servlet-name>exchange</servlet-name>
     </filter-mapping>
 
 </web-app>

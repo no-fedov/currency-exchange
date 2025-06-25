@@ -1,6 +1,7 @@
 package com.nefedov.currency_exchange.domain.service;
 
 import com.nefedov.currency_exchange.domain.dao.ExchangeRateDao;
+import com.nefedov.currency_exchange.domain.dao.exception.EntityNotFoundException;
 import com.nefedov.currency_exchange.domain.dto.ExchangeRateDto;
 import com.nefedov.currency_exchange.domain.entity.ExchangeRate;
 import com.nefedov.currency_exchange.domain.mapper.ExchangeRateMapper;
@@ -30,7 +31,9 @@ public class ExchangeRateService {
     }
 
     public ExchangeRateDto getByCurrenciesCode(String baseCurrencyCode, String targetCurrencyCode) {
-        ExchangeRate exchangeRate = exchangeRateDao.findByCurrenciesCode(baseCurrencyCode, targetCurrencyCode);
+        ExchangeRate exchangeRate = exchangeRateDao.findByCurrenciesCode(baseCurrencyCode, targetCurrencyCode)
+                .orElseThrow(() -> new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
+                .formatted(baseCurrencyCode, targetCurrencyCode)));
         return ExchangeRateMapper.toDto(exchangeRate);
     }
 }

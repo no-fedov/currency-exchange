@@ -2,7 +2,6 @@ package com.nefedov.currency_exchange.domain.dao;
 
 import com.nefedov.currency_exchange.domain.dao.mapper.CurrencyRowMapper;
 import com.nefedov.currency_exchange.domain.entity.Currency;
-import com.nefedov.currency_exchange.domain.dao.exception.EntityNotFoundException;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +9,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class CurrencyDao {
 
@@ -53,15 +53,15 @@ public class CurrencyDao {
         });
     }
 
-    public Currency findByCode(String code) {
+    public Optional<Currency> findByCode(String code) {
         return TransactionExecutor.doInTransaction(connection -> {
             PreparedStatement statement = connection.prepareStatement(FIND_BY_CODE_QUERY_TEMPLATE);
             statement.setString(1, code);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                return CurrencyRowMapper.toEntity(resultSet);
+                return Optional.of(CurrencyRowMapper.toEntity(resultSet));
             } else {
-                throw new EntityNotFoundException("Валюта с именем '%s' не найдена".formatted(code));
+                return Optional.empty();
             }
         });
     }
