@@ -10,12 +10,15 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 
 import static com.nefedov.currency_exchange.web.servlet.JsonResponseWriter.writeJsonToResponse;
+import static com.nefedov.currency_exchange.web.util.NumberValidator.validNumber;
+import static com.nefedov.currency_exchange.web.util.URLValidator.validateLength;
 
 public class ExchangeRateServlet extends HttpServlet {
+
+    private static final String RATE = "rate";
 
     private ExchangeRateService service;
 
@@ -43,14 +46,16 @@ public class ExchangeRateServlet extends HttpServlet {
 
     public void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         CurrencyPair currencyPair = extractCurrencyPair(req);
-        Map<String, List<String>> parameters = FormURLEncoderParser.parse(req);
-        String rate = parameters.get("rate").get(0);
+        Map<String, String[]> parameters = FormURLEncoderParser.parse(req);
+        String rate = parameters.get(RATE)[0];
+        validNumber(RATE, rate);
         writeJsonToResponse(resp,
                 service.update(currencyPair.baseCurrencyCode, currencyPair.targetCurrencyCode, new BigDecimal(rate)));
     }
 
     private CurrencyPair extractCurrencyPair(HttpServletRequest req) {
         String pathInfo = req.getPathInfo();
+        validateLength("Валютная пара", pathInfo, 7);
         String baseCurrencyCode = pathInfo.substring(1, 4);
         String targetCurrencyCode = pathInfo.substring(4);
         return new CurrencyPair(baseCurrencyCode, targetCurrencyCode);

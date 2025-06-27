@@ -2,20 +2,24 @@ package com.nefedov.currency_exchange.web.servlet;
 
 import com.nefedov.currency_exchange.domain.dto.CurrencyDto;
 import com.nefedov.currency_exchange.domain.service.CurrencyService;
-import com.nefedov.currency_exchange.web.exception.ValidationException;
 import com.nefedov.currency_exchange.web.listener.AppContextListener;
+import com.nefedov.currency_exchange.web.util.URLValidator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Iterator;
 
 import static com.nefedov.currency_exchange.web.servlet.JsonResponseWriter.writeJsonToResponse;
+import static com.nefedov.currency_exchange.web.util.URLValidator.validateLength;
 
 public class CurrencyServlet extends HttpServlet {
+
+    private static final String CURRENCY_CODE_PATTERN = "###";
+    private static final String CODE = "code";
+    private static final String NAME = "name";
+    private static final String SIGN = "sign";
 
     private CurrencyService currencyService;
 
@@ -27,10 +31,13 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        validRequest(req);
-        String code = req.getParameter("code");
-        String name = req.getParameter("name");
-        String sign = req.getParameter("sign");
+        req.getParameterMap().forEach(URLValidator::validFormRequest);
+        String code = req.getParameter(CODE);
+        String name = req.getParameter(NAME);
+        String sign = req.getParameter(SIGN);
+        validateLength(CODE, code, CURRENCY_CODE_PATTERN.length());
+        validateLength(NAME, name, 1);
+        validateLength(SIGN, sign, 1);
         CurrencyDto currency = new CurrencyDto(null, code, name, sign);
         CurrencyDto savedCurrency = currencyService.create(currency);
         resp.setStatus(HttpServletResponse.SC_CREATED);
@@ -43,20 +50,9 @@ public class CurrencyServlet extends HttpServlet {
         if (pathInfo == null) {
             writeJsonToResponse(resp, currencyService.getAll());
         } else {
-            String currencyName = pathInfo.substring(1);
-            writeJsonToResponse(resp, currencyService.getByCode(currencyName));
-        }
-    }
-
-    private void validRequest(HttpServletRequest req) {
-        Enumeration<String> parameterNames = req.getParameterNames();
-        Iterator<String> iterator = parameterNames.asIterator();
-        while (iterator.hasNext()) {
-            String parameterName = iterator.next();
-            String parameterValue = req.getParameter(parameterName);
-            if (parameterValue.trim().isBlank()) {
-                throw new ValidationException("Параметр %s должены быть заполнен".formatted(parameterName));
-            }
+            String code = pathInfo.substring(1);
+            validateLength(CODE, code, CURRENCY_CODE_PATTERN.length());
+            writeJsonToResponse(resp, currencyService.getByCode(code));
         }
     }
 }

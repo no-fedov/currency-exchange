@@ -17,16 +17,24 @@ public class FormURLEncoderParser {
     private FormURLEncoderParser() {
     }
 
-    public static Map<String, List<String>> parse(HttpServletRequest request) throws IOException {
+    public static Map<String, String[]> parse(HttpServletRequest request) throws IOException {
         try (BufferedReader reader = request.getReader()) {
             return reader.lines()
                     .map(line -> URLDecoder.decode(line, StandardCharsets.UTF_8))
-                    .map(line -> line.split("&"))
-                    .flatMap(Arrays::stream)
-                    .map(property -> property.split("="))
-                    .collect(Collectors.toMap(key -> key[0],
-                            value -> List.of(value[1]),
-                            (a, b) -> Stream.concat(a.stream(), b.stream()).toList()));
+                    .flatMap(line -> Arrays.stream(line.split("&")))
+                    .map(pair -> pair.split("=", 2))
+                    .collect(Collectors.groupingBy(
+                            p -> p[0],
+                            Collectors.mapping(
+                                    p -> p.length > 1 ? p[1] : "",
+                                    Collectors.toList()
+                            )
+                    ))
+                    .entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().toArray(String[]::new)
+                    ));
         }
     }
 }

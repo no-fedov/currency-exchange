@@ -13,8 +13,15 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 import static com.nefedov.currency_exchange.web.servlet.JsonResponseWriter.writeJsonToResponse;
+import static com.nefedov.currency_exchange.web.util.NumberValidator.validNumber;
+import static com.nefedov.currency_exchange.web.util.URLValidator.validateLength;
 
 public class ExchangeServlet extends HttpServlet {
+
+    private static final String CURRENCY_CODE_PATTERN = "###";
+    private static final String FROM = "from";
+    private static final String TO = "to";
+    private static final String AMOUNT = "amount";
 
     private ExchangeService exchangeService;
 
@@ -26,9 +33,12 @@ public class ExchangeServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String from = req.getParameter("from");
-        String to = req.getParameter("to");
-        String amount = req.getParameter("amount");
+        String from = req.getParameter(FROM);
+        String to = req.getParameter(TO);
+        String amount = req.getParameter(AMOUNT);
+        validateLength(FROM, from, CURRENCY_CODE_PATTERN.length());
+        validateLength(TO, to, CURRENCY_CODE_PATTERN.length());
+        validNumber(AMOUNT, amount);
         ExchangeDto exchangeDto = exchangeService.convertCurrency(from, to, new BigDecimal(amount));
         writeJsonToResponse(resp, exchangeDto);
     }
