@@ -60,58 +60,61 @@ public class ExchangeRateDao {
 
     public ExchangeRate save(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
         return TransactionExecutor.doInTransaction(connection -> {
-            PreparedStatement insertStatement = connection.prepareStatement(INSERT_QUERY_TEMPLATE,
+            try (PreparedStatement insertStatement = connection.prepareStatement(INSERT_QUERY_TEMPLATE,
                     Statement.RETURN_GENERATED_KEYS);
-            PreparedStatement findStatement = connection.prepareStatement(FIND_BY_ID_QUERY_TEMPLATE);
-            insertStatement.setString(1, baseCurrencyCode);
-            insertStatement.setString(2, targetCurrencyCode);
-            insertStatement.setBigDecimal(3, rate);
-            insertStatement.executeUpdate();
-            ResultSet generatedKeys = insertStatement.getGeneratedKeys();
-            Integer exchangeRateId = null;
-            if (generatedKeys.next()) {
-                exchangeRateId = generatedKeys.getInt(1);
-            } else {
-                connection.rollback();
-                throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
-                        .formatted(baseCurrencyCode, targetCurrencyCode));
+                 PreparedStatement findStatement = connection.prepareStatement(FIND_BY_ID_QUERY_TEMPLATE)) {
+                insertStatement.setString(1, baseCurrencyCode);
+                insertStatement.setString(2, targetCurrencyCode);
+                insertStatement.setBigDecimal(3, rate);
+                insertStatement.executeUpdate();
+                ResultSet generatedKeys = insertStatement.getGeneratedKeys();
+                Integer exchangeRateId = null;
+                if (generatedKeys.next()) {
+                    exchangeRateId = generatedKeys.getInt(1);
+                } else {
+                    connection.rollback();
+                    throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
+                            .formatted(baseCurrencyCode, targetCurrencyCode));
+                }
+                findStatement.setInt(1, exchangeRateId);
+                ResultSet resultSetExchangeRate = findStatement.executeQuery();
+                resultSetExchangeRate.next();
+                return ExchangeRateRowMapper.toEntity(resultSetExchangeRate);
             }
-            findStatement.setInt(1, exchangeRateId);
-            ResultSet resultSetExchangeRate = findStatement.executeQuery();
-            resultSetExchangeRate.next();
-            return ExchangeRateRowMapper.toEntity(resultSetExchangeRate);
         });
     }
 
     public List<ExchangeRate> getAll() {
         return TransactionExecutor.doInTransaction(connection -> {
             List<ExchangeRate> result = new LinkedList<>();
-            PreparedStatement statement = connection.prepareStatement(FIND_ALL_QUERY);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                result.add(ExchangeRateRowMapper.toEntity(resultSet));
+            try (PreparedStatement statement = connection.prepareStatement(FIND_ALL_QUERY)) {
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    result.add(ExchangeRateRowMapper.toEntity(resultSet));
+                }
+                return result;
             }
-            return result;
         });
     }
 
     public ExchangeRate update(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
         return TransactionExecutor.doInTransaction(connection -> {
-            PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY_TEMPLATE);
-            statement.setBigDecimal(1, rate);
-            statement.setString(2, baseCurrencyCode);
-            statement.setString(3, targetCurrencyCode);
-            int executeUpdate = statement.executeUpdate();
-            if (executeUpdate == 0) {
-                connection.rollback();
-                throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
-                        .formatted(baseCurrencyCode, targetCurrencyCode));
+            try (PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY_TEMPLATE)) {
+                statement.setBigDecimal(1, rate);
+                statement.setString(2, baseCurrencyCode);
+                statement.setString(3, targetCurrencyCode);
+                int executeUpdate = statement.executeUpdate();
+                if (executeUpdate == 0) {
+                    connection.rollback();
+                    throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
+                            .formatted(baseCurrencyCode, targetCurrencyCode));
+                }
+                ExchangeRate exchangeRateByCurrencies = getExchangeRateByCurrencies(baseCurrencyCode,
+                        targetCurrencyCode,
+                        connection).orElseThrow();
+                connection.commit();
+                return exchangeRateByCurrencies;
             }
-            ExchangeRate exchangeRateByCurrencies = getExchangeRateByCurrencies(baseCurrencyCode,
-                    targetCurrencyCode,
-                    connection).orElseThrow();
-            connection.commit();
-            return exchangeRateByCurrencies;
         });
     }
 
@@ -124,8 +127,8 @@ public class ExchangeRateDao {
     }
 
     private Optional<ExchangeRate> getExchangeRateByCurrencies(String baseCurrencyCode,
-                                                     String targetCurrencyCode,
-                                                     Connection connection) throws SQLException {
+                                                               String targetCurrencyCode,
+                                                               Connection connection) throws SQLException {
         try (PreparedStatement findStatement = connection.prepareStatement(FIND_BY_CURRENCIES_CODE_QUERY_TEMPLATE)) {
             findStatement.setString(1, baseCurrencyCode);
             findStatement.setString(2, targetCurrencyCode);

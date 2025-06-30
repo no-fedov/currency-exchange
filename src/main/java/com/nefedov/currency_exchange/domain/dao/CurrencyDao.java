@@ -29,39 +29,42 @@ public class CurrencyDao {
 
     public Currency save(Currency entity) {
         return TransactionExecutor.doInTransaction(connection -> {
-            PreparedStatement statement = connection.prepareStatement(INSERT_QUERY_TEMPLATE,
-                    Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, entity.getCode());
-            statement.setString(2, entity.getFullName());
-            statement.setString(3, entity.getSign());
-            statement.executeUpdate();
-            ResultSet generatedKeys = statement.getGeneratedKeys();
-            entity.setId(generatedKeys.getInt(1));
-            return entity;
+            try (PreparedStatement statement = connection.prepareStatement(INSERT_QUERY_TEMPLATE,
+                    Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, entity.getCode());
+                statement.setString(2, entity.getFullName());
+                statement.setString(3, entity.getSign());
+                statement.executeUpdate();
+                ResultSet generatedKeys = statement.getGeneratedKeys();
+                entity.setId(generatedKeys.getInt(1));
+                return entity;
+            }
         });
     }
 
     public List<Currency> getAll() {
         return TransactionExecutor.doInTransaction(connection -> {
             List<Currency> result = new LinkedList<>();
-            PreparedStatement statement = connection.prepareStatement(FIND_ALL_QUERY);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                result.add(CurrencyRowMapper.toEntity(resultSet));
+            try (PreparedStatement statement = connection.prepareStatement(FIND_ALL_QUERY)) {
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    result.add(CurrencyRowMapper.toEntity(resultSet));
+                }
+                return Collections.unmodifiableList(result);
             }
-            return Collections.unmodifiableList(result);
         });
     }
 
     public Optional<Currency> findByCode(String code) {
         return TransactionExecutor.doInTransaction(connection -> {
-            PreparedStatement statement = connection.prepareStatement(FIND_BY_CODE_QUERY_TEMPLATE);
-            statement.setString(1, code);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return Optional.of(CurrencyRowMapper.toEntity(resultSet));
-            } else {
-                return Optional.empty();
+            try (PreparedStatement statement = connection.prepareStatement(FIND_BY_CODE_QUERY_TEMPLATE);) {
+                statement.setString(1, code);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return Optional.of(CurrencyRowMapper.toEntity(resultSet));
+                } else {
+                    return Optional.empty();
+                }
             }
         });
     }
