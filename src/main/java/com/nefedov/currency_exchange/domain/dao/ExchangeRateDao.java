@@ -112,7 +112,6 @@ public class ExchangeRateDao {
                 ExchangeRate exchangeRateByCurrencies = getExchangeRateByCurrencies(baseCurrencyCode,
                         targetCurrencyCode,
                         connection).orElseThrow();
-                connection.commit();
                 return exchangeRateByCurrencies;
             }
         });
