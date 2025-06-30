@@ -3,6 +3,7 @@ package com.nefedov.currency_exchange.domain.mapper;
 import com.nefedov.currency_exchange.domain.dto.ExchangeRateDto;
 import com.nefedov.currency_exchange.domain.entity.ExchangeRate;
 
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class ExchangeRateMapper {
                 .id(entity.getId())
                 .baseCurrency(CurrencyMapper.toDto(entity.getBaseCurrency()))
                 .targetCurrency(CurrencyMapper.toDto(entity.getTargetCurrency()))
-                .rate(entity.getRate())
+                .rate(entity.getRate().setScale(2, RoundingMode.HALF_UP))
                 .build();
     }
 
@@ -31,7 +32,7 @@ public class ExchangeRateMapper {
                 .id(dto.getId())
                 .baseCurrency(CurrencyMapper.toEntity(dto.getBaseCurrency()))
                 .targetCurrency(CurrencyMapper.toEntity(dto.getTargetCurrency()))
-                .rate(dto.getRate())
+                .rate(dto.getRate().setScale(2, RoundingMode.HALF_UP))
                 .build();
     }
 }

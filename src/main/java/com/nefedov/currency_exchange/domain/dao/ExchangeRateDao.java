@@ -109,10 +109,9 @@ public class ExchangeRateDao {
                     throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
                             .formatted(baseCurrencyCode, targetCurrencyCode));
                 }
-                ExchangeRate exchangeRateByCurrencies = getExchangeRateByCurrencies(baseCurrencyCode,
+                return getExchangeRateByCurrencies(baseCurrencyCode,
                         targetCurrencyCode,
                         connection).orElseThrow();
-                return exchangeRateByCurrencies;
             }
         });
     }
