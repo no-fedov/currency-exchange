@@ -49,7 +49,7 @@ public class ExchangeService {
     private ExchangeDto calculateReverseExchange(String baseCurrency, String targetCurrency, BigDecimal amount) {
         ExchangeRate exchangeRate = exchangeRateDao.findByCurrenciesCode(targetCurrency, baseCurrency)
                 .orElseThrow(EntityNotFoundException::new);
-        BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate());
+        BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate(), 6, RoundingMode.HALF_UP);
         BigDecimal convertedAmount = rate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
         return ExchangeDto.builder()
                 .rate(rate.setScale(2, RoundingMode.HALF_UP))
@@ -65,7 +65,7 @@ public class ExchangeService {
                 .orElseThrow(EntityNotFoundException::new);
         ExchangeRate exchangeRate2 = exchangeRateDao.findByCurrenciesCode("USD", targetCurrency)
                 .orElseThrow(EntityNotFoundException::new);
-        BigDecimal rate = exchangeRate2.getRate().divide(exchangeRate1.getRate());
+        BigDecimal rate = exchangeRate2.getRate().divide(exchangeRate1.getRate(), 6, RoundingMode.HALF_UP);
         BigDecimal convertedAmount = rate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
         return ExchangeDto.builder()
                 .rate(rate.setScale(2, RoundingMode.HALF_UP))
