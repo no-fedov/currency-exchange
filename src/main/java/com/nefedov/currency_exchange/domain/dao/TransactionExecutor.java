@@ -13,7 +13,7 @@ public class TransactionExecutor {
     public static <T> T doInTransaction(Transactional<T> operation) {
         Connection connection = null;
         try {
-            connection = ConnectionPool.open();
+            connection = ConnectionPool.getConnection();
             connection.setAutoCommit(false);
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             T result = operation.execute(connection);

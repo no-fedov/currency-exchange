@@ -116,7 +116,7 @@ public class ExchangeRateDao {
     }
 
     public Optional<ExchangeRate> findByCurrenciesCode(String baseCurrencyCode, String targetCurrencyCode) {
-        try (Connection connection = ConnectionPool.open()) {
+        try (Connection connection = ConnectionPool.getConnection()) {
             return getExchangeRateByCurrencies(baseCurrencyCode, targetCurrencyCode, connection);
         } catch (SQLException e) {
             throw SQLiteErrors.handle("", e);

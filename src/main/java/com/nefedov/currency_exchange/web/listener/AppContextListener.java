@@ -1,5 +1,6 @@
 package com.nefedov.currency_exchange.web.listener;
 
+import com.nefedov.currency_exchange.connection.ConnectionPool;
 import com.nefedov.currency_exchange.domain.dao.CurrencyDao;
 import com.nefedov.currency_exchange.domain.dao.ExchangeRateDao;
 import com.nefedov.currency_exchange.domain.service.CurrencyService;
@@ -18,7 +19,6 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        // TODO: создать пул соединений
         initCurrencyService(sce);
         initExchangeRateService(sce);
         initExchangeService(sce);
@@ -26,7 +26,7 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        // TODO: закрыть соединения с БД
+        ConnectionPool.closePool();
     }
 
     private void initCurrencyService(ServletContextEvent sce) {
