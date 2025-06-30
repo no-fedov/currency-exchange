@@ -38,7 +38,7 @@ public class ExchangeService {
         BigDecimal rate = exchangeRate.getRate();
         BigDecimal convertedAmount = rate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
         return ExchangeDto.builder()
-                .rate(rate)
+                .rate(rate.setScale(2, RoundingMode.HALF_UP))
                 .baseCurrency(CurrencyMapper.toDto(exchangeRate.getBaseCurrency()))
                 .targetCurrency(CurrencyMapper.toDto(exchangeRate.getTargetCurrency()))
                 .amount(amount)
@@ -49,10 +49,10 @@ public class ExchangeService {
     private ExchangeDto calculateReverseExchange(String baseCurrency, String targetCurrency, BigDecimal amount) {
         ExchangeRate exchangeRate = exchangeRateDao.findByCurrenciesCode(targetCurrency, baseCurrency)
                 .orElseThrow(EntityNotFoundException::new);
-        BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate(), 2, RoundingMode.HALF_UP);
+        BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate());
         BigDecimal convertedAmount = rate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
         return ExchangeDto.builder()
-                .rate(rate)
+                .rate(rate.setScale(2, RoundingMode.HALF_UP))
                 .baseCurrency(CurrencyMapper.toDto(exchangeRate.getBaseCurrency()))
                 .targetCurrency(CurrencyMapper.toDto(exchangeRate.getTargetCurrency()))
                 .amount(amount)
@@ -65,10 +65,10 @@ public class ExchangeService {
                 .orElseThrow(EntityNotFoundException::new);
         ExchangeRate exchangeRate2 = exchangeRateDao.findByCurrenciesCode("USD", targetCurrency)
                 .orElseThrow(EntityNotFoundException::new);
-        BigDecimal rate = exchangeRate2.getRate().divide(exchangeRate1.getRate(), 2, RoundingMode.HALF_UP);
+        BigDecimal rate = exchangeRate2.getRate().divide(exchangeRate1.getRate());
         BigDecimal convertedAmount = rate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
         return ExchangeDto.builder()
-                .rate(rate)
+                .rate(rate.setScale(2, RoundingMode.HALF_UP))
                 .baseCurrency(CurrencyMapper.toDto(exchangeRate1.getTargetCurrency()))
                 .targetCurrency(CurrencyMapper.toDto(exchangeRate2.getTargetCurrency()))
                 .amount(amount)
