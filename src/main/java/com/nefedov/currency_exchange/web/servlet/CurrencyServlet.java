@@ -16,6 +16,7 @@ import static com.nefedov.currency_exchange.web.util.URLValidator.validateLength
 
 public class CurrencyServlet extends HttpServlet {
 
+    private static final int MAX_FORM_SIZE_PARAMETER = 20;
     private static final String CURRENCY_CODE_PATTERN = "###";
     private static final String CODE = "code";
     private static final String NAME = "name";
@@ -36,8 +37,8 @@ public class CurrencyServlet extends HttpServlet {
         String name = req.getParameter(NAME);
         String sign = req.getParameter(SIGN);
         validateLength(CODE, code, CURRENCY_CODE_PATTERN.length());
-        validateLength(NAME, name, 1);
-        validateLength(SIGN, sign, 1);
+        validateLength(NAME, name, MAX_FORM_SIZE_PARAMETER);
+        validateLength(SIGN, sign, MAX_FORM_SIZE_PARAMETER);
         CurrencyDto currency = new CurrencyDto(null, code, name, sign);
         CurrencyDto savedCurrency = currencyService.create(currency);
         resp.setStatus(HttpServletResponse.SC_CREATED);

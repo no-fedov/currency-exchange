@@ -15,7 +15,7 @@ public class URLValidator {
     public static void validateLength(String parameterName,
                                       String value,
                                       int expectedLength) {
-        if (value == null || value.trim().isEmpty() || value.length() < expectedLength) {
+        if (value == null || value.trim().isEmpty() || value.length() > expectedLength) {
             throw new ValidationException("Параметр %s не заполнен, или заполнен некорректно".formatted(parameterName));
         }
     }
