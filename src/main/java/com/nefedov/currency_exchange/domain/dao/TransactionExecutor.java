@@ -10,12 +10,12 @@ public class TransactionExecutor {
     private TransactionExecutor() {
     }
 
-    public static <T> T doInTransaction(Transactional<T> operation) {
+    public static <T> T doInTransaction(Transactional<T> operation, int transactionalLevel) {
         Connection connection = null;
         try {
             connection = ConnectionPool.getConnection();
             connection.setAutoCommit(false);
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setTransactionIsolation(transactionalLevel);
             T result = operation.execute(connection);
             connection.commit();
             return result;

@@ -3,6 +3,7 @@ package com.nefedov.currency_exchange.domain.dao;
 import com.nefedov.currency_exchange.domain.dao.mapper.CurrencyRowMapper;
 import com.nefedov.currency_exchange.domain.entity.Currency;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -39,7 +40,7 @@ public class CurrencyDao {
                 entity.setId(generatedKeys.getInt(1));
                 return entity;
             }
-        });
+        }, Connection.TRANSACTION_READ_COMMITTED);
     }
 
     public List<Currency> getAll() {
@@ -52,7 +53,7 @@ public class CurrencyDao {
                 }
                 return Collections.unmodifiableList(result);
             }
-        });
+        }, Connection.TRANSACTION_READ_COMMITTED);
     }
 
     public Optional<Currency> findByCode(String code) {
@@ -66,6 +67,6 @@ public class CurrencyDao {
                     return Optional.empty();
                 }
             }
-        });
+        }, Connection.TRANSACTION_READ_COMMITTED);
     }
 }

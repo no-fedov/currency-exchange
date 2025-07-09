@@ -67,6 +67,8 @@ public class ExchangeRateDao {
                 insertStatement.setString(2, targetCurrencyCode);
                 insertStatement.setBigDecimal(3, rate);
                 insertStatement.executeUpdate();
+
+                // TODO: как будто это все лишнее и решается ограничениями в БД
                 ResultSet generatedKeys = insertStatement.getGeneratedKeys();
                 Integer exchangeRateId = null;
                 if (generatedKeys.next()) {
@@ -76,12 +78,13 @@ public class ExchangeRateDao {
                     throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
                             .formatted(baseCurrencyCode, targetCurrencyCode));
                 }
+                // TODO: стоит ли в одной транзакции вставлять и искать? это же не атомарные операции
                 findStatement.setInt(1, exchangeRateId);
                 ResultSet resultSetExchangeRate = findStatement.executeQuery();
                 resultSetExchangeRate.next();
                 return ExchangeRateRowMapper.toEntity(resultSetExchangeRate);
             }
-        });
+        }, Connection.TRANSACTION_READ_COMMITTED);
     }
 
     public List<ExchangeRate> getAll() {
@@ -94,7 +97,7 @@ public class ExchangeRateDao {
                 }
                 return result;
             }
-        });
+        }, Connection.TRANSACTION_READ_COMMITTED);
     }
 
     public ExchangeRate update(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
@@ -105,6 +108,7 @@ public class ExchangeRateDao {
                 statement.setString(3, targetCurrencyCode);
                 int executeUpdate = statement.executeUpdate();
                 if (executeUpdate == 0) {
+                    // TODO: нафига я здесь сделал ролбек?
                     connection.rollback();
                     throw new EntityNotFoundException("Одной из валюты не существует (%s, %s)"
                             .formatted(baseCurrencyCode, targetCurrencyCode));
@@ -113,7 +117,7 @@ public class ExchangeRateDao {
                         targetCurrencyCode,
                         connection).orElseThrow();
             }
-        });
+        }, Connection.TRANSACTION_READ_COMMITTED);
     }
 
     public Optional<ExchangeRate> findByCurrenciesCode(String baseCurrencyCode, String targetCurrencyCode) {
